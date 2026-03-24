@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% block title %}Home — TheBlog{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero {
+    background: linear-gradient(135deg, var(--primary) 0%, #16213e 100%);
+    color: #fff;
+    padding: 4rem 1.5rem;
+    text-align: center;
+    margin-bottom: 0;
+}
+.hero h1 {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.2;
+}
+.hero h1 span { color: var(--accent); }
+.hero p { font-size: 1.15rem; opacity: 0.8; max-width: 500px; margin: 0 auto 2rem; }
+
+.search-bar {
+    max-width: 520px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0;
+    border-radius: 50px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.search-bar input {
+    flex: 1;
+    padding: 0.85rem 1.5rem;
+    border: none;
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    outline: none;
+}
+.search-bar button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 0 1.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+.search-bar button:hover { background: var(--accent-light); }
+
+.main-layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem;
+}
+@media (max-width: 768px) {
+    .main-layout { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 2rem; }
+}
+
+/* Posts grid */
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.post-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.25s, transform 0.25s;
+}
+.post-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-3px); }
+
+.post-card-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #e8e4e0, #d0ccc8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 2.5rem;
+}
+.post-card-image img { width: 100%; height: 100%; object-fit: cover; }
+
+.post-card-body { padding: 1.4rem; flex: 1; display: flex; flex-direction: column; }
+.post-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+.post-card-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    margin-bottom: 0.6rem;
+    line-height: 1.4;
+}
+.post-card-title a { color: var(--primary); text-decoration: none; }
+.post-card-title a:hover { color: var(--accent); }
+.post-card-excerpt {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    flex: 1;
+    margin-bottom: 1rem;
+}
+.post-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+.post-card-stats { display: flex; gap: 0.9rem; }
+.post-card-stats span { display: flex; align-items: center; gap: 0.3rem; }
+.post-card-stats .fa-heart { color: var(--accent); }
+.post-card-stats .fa-comment { color: #6c63ff; }
+
+/* Sidebar */
+.sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+.sidebar-widget {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+}
+.sidebar-widget h3 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--accent);
+    color: var(--primary);
+}
+.category-list { list-style: none; }
+.category-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.category-list li:last-child { border-bottom: none; }
+.category-list a { text-decoration: none; color: var(--text); font-size: 0.9rem; }
+.category-list a:hover { color: var(--accent); }
+.category-count {
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+}
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.filter-bar .filter-label { font-weight: 600; font-size: 0.85rem; color: var(--text-muted); }
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+}
+.empty-state i { font-size: 3rem; margin-bottom: 1rem; display: block; opacity: 0.4; }
+.empty-state h3 { font-family: var(--font-display); margin-bottom: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Stories Worth <span>Reading</span></h1>
+    <p>Discover articles, insights, and ideas from our community of writers.</p>
+    <form method="GET" class="search-bar">
+        <input type="text" name="search" placeholder="Search posts..." value="{{ search }}">
+        <button type="submit"><i class="fas fa-search"></i></button>
+    </form>
+</div>
+
+<div class="main-layout">
+    <!-- Posts -->
+    <main>
+        {% if selected_category or selected_tag or search %}
+        <div class="filter-bar">
+            <span class="filter-label">Filtering by:</span>
+            {% if search %}<span class="tag tag-accent"><i class="fas fa-search"></i> "{{ search }}"</span>{% endif %}
+            {% if selected_category %}<span class="tag tag-accent"><i class="fas fa-folder"></i> {{ selected_category }}</span>{% endif %}
+            {% if selected_tag %}<span class="tag tag-accent"><i class="fas fa-tag"></i> {{ selected_tag }}</span>{% endif %}
+            <a href="{% url 'post_list' %}" class="btn btn-outline btn-sm">Clear filters</a>
+        </div>
+        {% endif %}
+
+        {% if posts %}
+        <div class="posts-grid">
+            {% for post in posts %}
+            <article class="post-card">
+                <div class="post-card-image">
+                    {% if post.featured_image %}
+                        <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+                    {% else %}
+                        <i class="fas fa-feather-alt"></i>
+                    {% endif %}
+                </div>
+                <div class="post-card-body">
+                    <div class="post-card-meta">
+                        {% if post.category %}
+                            <a href="?category={{ post.category.slug }}" class="category-pill">{{ post.category.name }}</a>
+                        {% endif %}
+                    </div>
+                    <h2 class="post-card-title">
+                        <a href="{% url 'post_detail' post.slug %}">{{ post.title }}</a>
+                    </h2>
+                    <p class="post-card-excerpt">{{ post.content|truncatechars:130 }}</p>
+                    <div class="post-card-footer">
+                        <span>
+                            <i class="fas fa-user-circle"></i>
+                            <strong>{{ post.author.username }}</strong>
+                            &nbsp;·&nbsp;
+                            {{ post.created_at|date:"M j, Y" }}
+                        </span>
+                        <div class="post-card-stats">
+                            <a href="{% url 'post_detail' post.slug %}">
+                                    <span class="like-count"><i class="fas fa-heart"></i>{{ post.like_count }}</span>
+                            </a>
+                            <a href="{% url 'post_detail' post.slug %}">
+                                <span><i class="fas fa-comment"></i> {{ post.comment_count }}</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-feather-alt"></i>
+            <h3>No posts found</h3>
+            <p>{% if search %}Try a different search term.{% else %}Be the first to publish something!{% endif %}</p>
+            {% if user.is_authenticated %}
+                {% with role=user.profile.role %}
+                    {% if role != 'reader' %}
+                        <a href="{% url 'create_post' %}" class="btn btn-accent" style="margin-top:1rem">Write a post</a>
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        {% if user.is_authenticated %}
+        <div class="sidebar-widget">
+            <h3><i class="fas fa-user"></i> Welcome</h3>
+            <p style="font-size:0.9rem; margin-bottom:0.75rem;">
+                Logged in as <strong>{{ user.username }}</strong>
+                {% with role=user.profile.role %}
+                <span class="role-badge role-{{ role }}">{{ role }}</span>
+                {% endwith %}
+            </p>
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                <a href="{% url 'dashboard' %}" class="btn btn-primary btn-sm"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                {% with role=user.profile.role %}
+                {% if role != 'subscriber' %}
+                <a href="{% url 'create_post' %}" class="btn btn-accent btn-sm"><i class="fas fa-pen"></i> New Post</a>
+                {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if categories %}
+        <div class="sidebar-widget">
+            <h3><i class="fas fa-folder-open"></i> Categories</h3>
+            <ul class="category-list">
+                {% for cat in categories %}
+                <li>
+                    <a href="?category={{ cat.slug }}">{{ cat.name }}</a>
+                    <span class="category-count">{{ cat.posts.count }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if tags %}
+        <div class="sidebar-widget">
+            <h3><i class="fas fa-tags"></i> Tags</h3>
+            <div class="tag-cloud">
+                {% for tag in tags %}
+                <a href="?tag={{ tag.slug }}" class="tag {% if selected_tag == tag.slug %}tag-accent{% endif %}">{{ tag.name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </aside>
+</div>
+{% endblock %}

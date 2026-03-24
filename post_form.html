@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Post — TheBlog{% endblock %}
+
+{% block extra_css %}
+<style>
+.editor-layout {
+    max-width: 900px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem;
+}
+.editor-header {
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.editor-header h1 { font-family: var(--font-display); font-size: 1.8rem; color: var(--primary); }
+
+.editor-card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+
+.editor-toolbar {
+    background: #f0ede8;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+.toolbar-btn {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.3rem 0.65rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: all 0.15s;
+    font-family: var(--font-body);
+    font-weight: 600;
+    color: var(--text);
+}
+.toolbar-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.toolbar-sep { width: 1px; background: var(--border); margin: 0 0.2rem; }
+
+.editor-body { padding: 2rem; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+#post-content {
+    width: 100%;
+    min-height: 300px;
+    padding: 1rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: var(--font-body);
+    line-height: 1.8;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+#post-content:focus { outline: none; border-color: var(--accent); }
+
+.image-preview { margin-top: 0.5rem; }
+.image-preview img { max-width: 100%; max-height: 200px; border-radius: 8px; }
+
+.editor-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--border);
+    background: #fafafa;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.status-notice {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.88rem;
+    color: #856404;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="editor-layout">
+    <div class="editor-header">
+        <h1><i class="fas fa-pen-fancy"></i> {{ action }} Post</h1>
+        <a href="{% url 'post_list' %}" class="btn btn-outline btn-sm"><i class="fas fa-times"></i> Cancel</a>
+    </div>
+
+    {% with role=user.profile.role %}
+    {% if role == 'author' %}
+    <div class="status-notice">
+        <i class="fas fa-info-circle"></i>
+        As an <strong>Author</strong>, your posts will be saved as drafts. An Editor or Admin will review and publish them.
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="editor-card">
+        <div class="editor-toolbar">
+            <button type="button" class="toolbar-btn" onclick="fmt('bold')"><i class="fas fa-bold"></i></button>
+            <button type="button" class="toolbar-btn" onclick="fmt('italic')"><i class="fas fa-italic"></i></button>
+            <button type="button" class="toolbar-btn" onclick="fmt('underline')"><i class="fas fa-underline"></i></button>
+            <div class="toolbar-sep"></div>
+            <button type="button" class="toolbar-btn" onclick="insertText('## ')">H2</button>
+            <button type="button" class="toolbar-btn" onclick="insertText('### ')">H3</button>
+            <div class="toolbar-sep"></div>
+            <button type="button" class="toolbar-btn" onclick="insertText('- ')"><i class="fas fa-list-ul"></i></button>
+            <button type="button" class="toolbar-btn" onclick="insertText('1. ')"><i class="fas fa-list-ol"></i></button>
+            <div class="toolbar-sep"></div>
+            <button type="button" class="toolbar-btn" onclick="insertLink()"><i class="fas fa-link"></i></button>
+            <button type="button" class="toolbar-btn" onclick="insertText('> ')"><i class="fas fa-quote-left"></i></button>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="editor-body">
+                <!-- Title -->
+                <div class="form-group">
+                    <label for="{{ form.title.id_for_label }}">
+                        <i class="fas fa-heading"></i> Title *
+                    </label>
+                    {{ form.title }}
+                    {% for error in form.title.errors %}<p class="errorlist">{{ error }}</p>{% endfor %}
+                </div>
+
+                <!-- Content -->
+                <div class="form-group">
+                    <label><i class="fas fa-align-left"></i> Content *</label>
+                    {{ form.content }}
+                    {% for error in form.content.errors %}<p class="errorlist">{{ error }}</p>{% endfor %}
+                    <p class="form-help">You can use basic formatting: **bold**, *italic*, ## Heading</p>
+                </div>
+
+                <div class="form-row">
+                    <!-- Category -->
+                    <div class="form-group">
+                        <label for="{{ form.category.id_for_label }}">
+                            <i class="fas fa-folder"></i> Category
+                        </label>
+                        {{ form.category }}
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="form-group">
+                        <label for="{{ form.tags_input.id_for_label }}">
+                            <i class="fas fa-tags"></i> Tags
+                        </label>
+                        {{ form.tags_input }}
+                        <p class="form-help">Separate with commas, e.g. python, django, web</p>
+                    </div>
+                </div>
+
+                <!-- Featured Image -->
+                <div class="form-group">
+                    <label><i class="fas fa-image"></i> Featured Image</label>
+                    {{ form.featured_image }}
+                    {% if post.featured_image %}
+                    <div class="image-preview">
+                        <img src="{{ post.featured_image.url }}" alt="Current image">
+                        <p class="form-help">Current image shown above. Upload a new one to replace it.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Status (editors/admins only) -->
+                {% if form.status %}
+                <div class="form-group">
+                    <label for="{{ form.status.id_for_label }}">
+                        <i class="fas fa-eye"></i> Status
+                    </label>
+                    {{ form.status }}
+                    <p class="form-help">As an Editor/Admin, you can publish directly or save as draft.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="editor-footer">
+                <button type="submit" class="btn btn-accent">
+                    <i class="fas fa-save"></i>
+                    {% if action == 'Edit' %}Save Changes{% else %}Create Post{% endif %}
+                </button>
+                <a href="{% url 'post_list' %}" class="btn btn-outline">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function fmt(command) {
+    document.getElementById('post-content').focus();
+    document.execCommand(command, false, null);
+}
+
+function insertText(text) {
+    const textarea = document.getElementById('post-content');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const before = textarea.value.substring(0, start);
+    const after = textarea.value.substring(end);
+    textarea.value = before + text + after;
+    textarea.selectionStart = textarea.selectionEnd = start + text.length;
+    textarea.focus();
+}
+
+function insertLink() {
+    const url = prompt('Enter URL:');
+    if (url) {
+        const textarea = document.getElementById('post-content');
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selected = textarea.value.substring(start, end) || 'link text';
+        const linkText = `[${selected}](${url})`;
+        textarea.value = textarea.value.substring(0, start) + linkText + textarea.value.substring(end);
+        textarea.focus();
+    }
+}
+</script>
+{% endblock %}
