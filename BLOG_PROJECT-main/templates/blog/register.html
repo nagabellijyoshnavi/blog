@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Register — TheBlog{% endblock %}
+{% block content %}
+<div class="container" style="max-width:520px; padding-top:3rem;">
+    <div class="form-card">
+        <div style="text-align:center; margin-bottom:2rem;">
+            <i class="fas fa-user-plus" style="font-size:2.5rem; color:var(--accent); margin-bottom:0.5rem; display:block;"></i>
+            <h1 style="font-family:var(--font-display); font-size:1.8rem; color:var(--primary);">Join TheBlog</h1>
+            <p style="color:var(--text-muted); font-size:0.9rem;">Create your account and start exploring</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label>{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<p class="form-help">{{ field.help_text }}</p>{% endif %}
+                {% for error in field.errors %}<p style="color:#dc3545;font-size:0.82rem;margin-top:0.3rem;">{{ error }}</p>{% endfor %}
+            </div>
+            {% endfor %}
+
+            <div style="background:#f0ede8; border-radius:8px; padding:1rem; margin-bottom:1.5rem; font-size:0.85rem; color:var(--text-muted);">
+                <strong style="color:var(--primary);">Role Guide:</strong><br>
+                <strong>Subscriber</strong> — Browse posts, like, comment<br>
+                <strong>Contributor</strong> — Everything + write your own posts (editors review before publishing)
+            </div>
+
+            <button type="submit" class="btn btn-accent" style="width:100%; justify-content:center; padding:0.75rem;">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+        </form>
+        <p style="text-align:center; margin-top:1.5rem; color:var(--text-muted); font-size:0.9rem;">
+            Already have an account? <a href="{% url 'login' %}" style="color:var(--accent); font-weight:600;">Login</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

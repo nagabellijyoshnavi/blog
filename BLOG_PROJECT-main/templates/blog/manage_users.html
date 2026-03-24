@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users — TheBlog{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-users-cog" style="color:var(--accent);"></i> Manage Users</h1>
+        <p style="color:var(--text-muted);margin-top:0.3rem;">Assign roles to control what users can do.</p>
+    </div>
+
+    <div style="background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th style="background:var(--primary);color:#fff;padding:0.85rem 1.2rem;text-align:left;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.5px;">User</th>
+                    <th style="background:var(--primary);color:#fff;padding:0.85rem 1.2rem;text-align:left;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.5px;">Email</th>
+                    <th style="background:var(--primary);color:#fff;padding:0.85rem 1.2rem;text-align:left;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.5px;">Current Role</th>
+                    <th style="background:var(--primary);color:#fff;padding:0.85rem 1.2rem;text-align:left;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.5px;">Change Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profile in profiles %}
+                <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:0.85rem 1.2rem;">
+                        <strong>{{ profile.user.username }}</strong>
+                        {% if profile.user == user %}<span style="font-size:0.75rem;color:var(--text-muted);"> (you)</span>{% endif %}
+                    </td>
+                    <td style="padding:0.85rem 1.2rem;color:var(--text-muted);font-size:0.88rem;">{{ profile.user.email }}</td>
+                    <td style="padding:0.85rem 1.2rem;">
+                        <span class="role-badge role-{{ profile.role }}">{{ profile.get_role_display }}</span>
+                    </td>
+                    <td style="padding:0.85rem 1.2rem;">
+                        {% if profile.user != user %}
+                        <form method="POST" style="display:flex;gap:0.5rem;align-items:center;">
+                            {% csrf_token %}
+                            <input type="hidden" name="user_id" value="{{ profile.user.id }}">
+                            <select name="role" style="padding:0.35rem 0.6rem;border:2px solid var(--border);border-radius:6px;font-size:0.85rem;font-family:var(--font-body);">
+                                <option value="subscriber" {% if profile.role == 'subscriber' %}selected{% endif %}>Subscriber</option>
+                                <option value="contributor" {% if profile.role == 'contributor' %}selected{% endif %}>Contributor</option>
+                                <option value="author" {% if profile.role == 'author' %}selected{% endif %}>Author</option>
+                                <option value="editor" {% if profile.role == 'editor' %}selected{% endif %}>Editor</option>
+                                <option value="admin" {% if profile.role == 'admin' %}selected{% endif %}>Admin</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Save</button>
+                        </form>
+                        {% else %}
+                        <span style="color:var(--text-muted);font-size:0.85rem;">Cannot change own role</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="background:#f0ede8;border-radius:var(--radius);padding:1.5rem;margin-top:1.5rem;">
+        <h3 style="font-family:var(--font-display);margin-bottom:0.75rem;">Role Permissions</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;font-size:0.88rem;">
+            <div><span class="role-badge role-subscriber">Subscriber</span><ul style="margin-top:0.5rem;padding-left:1.2rem;color:var(--text-muted);"><li>View published posts</li><li>Like posts</li><li>Comment</li></ul></div>
+            <div><span class="role-badge role-contributor">Contributor</span><ul style="margin-top:0.5rem;padding-left:1.2rem;color:var(--text-muted);"><li>Everything in Subscriber</li><li>contribute posts (as drafts)</li><li>View published posts</li></ul></div>
+            <div><span class="role-badge role-author">Author</span><ul style="margin-top:0.5rem;padding-left:1.2rem;color:var(--text-muted);"><li>Everything in Contributor</li><li>Create posts </li><li>Edit own posts</li></ul></div>
+            <div><span class="role-badge role-editor">Editor</span><ul style="margin-top:0.5rem;padding-left:1.2rem;color:var(--text-muted);"><li>Everything in Author</li><li>Publish any post</li><li>Edit/delete any post</li></ul></div>
+            <div><span class="role-badge role-admin">Admin</span><ul style="margin-top:0.5rem;padding-left:1.2rem;color:var(--text-muted);"><li>Everything in Editor</li><li>Manage user roles</li><li>Full system access</li></ul></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

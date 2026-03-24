@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Delete Post — TheBlog{% endblock %}
+{% block content %}
+<div class="container" style="max-width:520px; padding-top:3rem;">
+    <div class="form-card" style="text-align:center;">
+        <i class="fas fa-exclamation-triangle" style="font-size:3rem;color:#dc3545;margin-bottom:1rem;display:block;"></i>
+        <h2 style="font-family:var(--font-display);margin-bottom:0.5rem;">Delete Post?</h2>
+        <p style="color:var(--text-muted);margin-bottom:2rem;">
+            Are you sure you want to delete <strong>"{{ post.title }}"</strong>?<br>
+            This action cannot be undone.
+        </p>
+        <form method="POST" style="display:flex;gap:1rem;justify-content:center;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Yes, Delete</button>
+            <a href="{% url 'post_detail' post.slug %}" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

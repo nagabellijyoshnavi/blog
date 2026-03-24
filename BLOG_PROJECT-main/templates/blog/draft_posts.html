@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Draft Posts — TheBlog{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-file-alt" style="color:var(--accent);"></i> Draft Posts</h1>
+    </div>
+    {% if drafts %}
+    <div style="display:grid;gap:1rem;">
+        {% for post in drafts %}
+        <div class="card" style="padding:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+            <div>
+                <h3 style="font-family:var(--font-display);margin-bottom:0.3rem;">
+                    <a href="{% url 'post_detail' post.slug %}" style="color:var(--primary);text-decoration:none;">{{ post.title }}</a>
+                </h3>
+                <p style="font-size:0.85rem;color:var(--text-muted);">
+                    By <strong>{{ post.author.username }}</strong> · {{ post.created_at|date:"M j, Y" }}
+                </p>
+            </div>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                {% with role=user.profile.role %}
+                {% if role == 'editor' or role == 'admin' %}
+                <a href="{% url 'publish_post' post.slug %}" class="btn btn-success btn-sm"><i class="fas fa-globe"></i> Publish</a>
+                {% endif %}
+                {% endwith %}
+                <a href="{% url 'edit_post' post.slug %}" class="btn btn-outline btn-sm"><i class="fas fa-edit"></i> Edit</a>
+                <a href="{% url 'delete_post' post.slug %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:4rem;color:var(--text-muted);">
+        <i class="fas fa-check-circle" style="font-size:3rem;margin-bottom:1rem;display:block;color:#28a745;opacity:0.6;"></i>
+        <h3 style="font-family:var(--font-display);">No drafts!</h3>
+        <p>All posts are published.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

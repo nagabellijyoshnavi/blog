@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Edit Profile — TheBlog{% endblock %}
+{% block content %}
+<div class="container" style="max-width:560px; padding-top:2.5rem;">
+    <div class="form-card">
+        <div style="margin-bottom:2rem;">
+            <h1 style="font-family:var(--font-display);font-size:1.8rem;color:var(--primary);margin-bottom:0.25rem;">
+                <i class="fas fa-user-edit" style="color:var(--accent);"></i> Edit Profile
+            </h1>
+            <p style="color:var(--text-muted);font-size:0.9rem;">Update your bio and avatar</p>
+        </div>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label>{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<p class="form-help">{{ field.help_text }}</p>{% endif %}
+                {% for error in field.errors %}<p style="color:#dc3545;font-size:0.82rem;margin-top:0.3rem;">{{ error }}</p>{% endfor %}
+            </div>
+            {% endfor %}
+            <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
+                <button type="submit" class="btn btn-accent"><i class="fas fa-save"></i> Save Profile</button>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

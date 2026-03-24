@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — TheBlog{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-layout { max-width: 1100px; margin: 2.5rem auto; padding: 0 1.5rem; }
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
+.stat-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    text-align: center;
+}
+.stat-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+.stat-number { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+}
+.section-header h2 { font-family: var(--font-display); font-size: 1.3rem; color: var(--primary); }
+
+.post-table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.post-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.post-table td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 0.9rem; }
+.post-table tr:last-child td { border-bottom: none; }
+.post-table tr:hover td { background: #fafafa; }
+
+.status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.status-published { background: #d4edda; color: #155724; }
+.status-draft { background: #fff3cd; color: #856404; }
+
+.profile-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+.avatar-placeholder {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.8rem; flex-shrink: 0;
+}
+.profile-card img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <div class="section-header">
+        <h1 style="font-family:var(--font-display);font-size:2rem;color:var(--primary);">
+            <i class="fas fa-tachometer-alt" style="color:var(--accent);"></i> Dashboard
+        </h1>
+        <a href="{% url 'edit_profile' %}" class="btn btn-outline btn-sm"><i class="fas fa-user-edit"></i> Edit Profile</a>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="profile-card">
+        {% if user.profile.avatar %}
+            <img src="{{ user.profile.avatar.url }}" alt="Avatar">
+        {% else %}
+            <div class="avatar-placeholder"><i class="fas fa-user"></i></div>
+        {% endif %}
+        <div>
+            <h2 style="font-family:var(--font-display); margin-bottom:0.25rem;">{{ user.username }}</h2>
+            <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:0.5rem;">{{ user.email }}</p>
+            <span class="role-badge role-{{ profile.role }}">{{ profile.get_role_display }}</span>
+            {% if profile.bio %}<p style="margin-top:0.75rem; font-size:0.88rem;">{{ profile.bio }}</p>{% endif %}
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon" style="color:var(--accent)"><i class="fas fa-file-alt"></i></div>
+            <div class="stat-number">{{ my_posts.count }}</div>
+            <div class="stat-label">Total Posts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="color:#28a745"><i class="fas fa-globe"></i></div>
+            <div class="stat-number">{{ my_posts|length }}</div>
+            <div class="stat-label">Published</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="color:#ffc107"><i class="fas fa-file"></i></div>
+            <div class="stat-number">{{ my_posts.filter.count }}</div>
+            <div class="stat-label">Drafts</div>
+        </div>
+        {% if profile.is_editor and pending_posts %}
+        <div class="stat-card">
+            <div class="stat-icon" style="color:#6f42c1"><i class="fas fa-clock"></i></div>
+            <div class="stat-number">{{ pending_posts.count }}</div>
+            <div class="stat-label">Pending Review</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- My Posts -->
+    {% if profile.is_author %}
+    <div style="margin-bottom:2rem;">
+        <div class="section-header">
+            <h2><i class="fas fa-pen"></i> My Posts</h2>
+            <a href="{% url 'create_post' %}" class="btn btn-accent btn-sm"><i class="fas fa-plus"></i> New Post</a>
+        </div>
+        {% if my_posts %}
+        <table class="post-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Likes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in my_posts %}
+                <tr>
+                    <td><a href="{% url 'post_detail' post.slug %}" style="color:var(--primary);font-weight:600;text-decoration:none;">{{ post.title }}</a></td>
+                    <td><span class="status-badge status-{{ post.status }}">{{ post.status }}</span></td>
+                    <td>{{ post.created_at|date:"M j, Y" }}</td>
+                    <td><i class="fas fa-heart" style="color:var(--accent)"></i> {{ post.like_count }}</td>
+                    <td>
+                        <a href="{% url 'edit_post' post.slug %}" class="btn btn-outline btn-sm"><i class="fas fa-edit"></i></a>
+                        <a href="{% url 'delete_post' post.slug %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+            <i class="fas fa-feather-alt" style="font-size:2rem;margin-bottom:0.75rem;display:block;opacity:0.4;"></i>
+            <p>No posts yet. <a href="{% url 'create_post' %}" style="color:var(--accent)">Write your first post!</a></p>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Pending Review (editors/admins) -->
+    {% if pending_posts %}
+    <div>
+        <div class="section-header">
+            <h2><i class="fas fa-clock" style="color:#6f42c1;"></i> Pending Review</h2>
+        </div>
+        <table class="post-table">
+            <thead>
+                <tr><th>Title</th><th>Author</th><th>Date</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for post in pending_posts %}
+                <tr>
+                    <td><a href="{% url 'post_detail' post.slug %}" style="color:var(--primary);font-weight:600;text-decoration:none;">{{ post.title }}</a></td>
+                    <td>{{ post.author.username }}</td>
+                    <td>{{ post.created_at|date:"M j, Y" }}</td>
+                    <td>
+                        <a href="{% url 'publish_post' post.slug %}" class="btn btn-success btn-sm"><i class="fas fa-globe"></i> Publish</a>
+                        <a href="{% url 'edit_post' post.slug %}" class="btn btn-outline btn-sm"><i class="fas fa-edit"></i> Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
